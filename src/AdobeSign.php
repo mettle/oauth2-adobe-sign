@@ -1,21 +1,23 @@
 <?php
 
+declare(strict_types=1);
 
-namespace KevinEm\OAuth2\Client;
-
+namespace Mettle\OAuth2\Client;
 
 use League\OAuth2\Client\Provider\AbstractProvider;
-use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
 use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class AdobeSign
- * @package KevinEm\OAuth2\Client
+ * @package Mettle\OAuth2\Client
  */
 class AdobeSign extends AbstractProvider
 {
+    use BearerAuthorizationTrait;
+
     /**
      * @var array
      */
@@ -49,6 +51,7 @@ class AdobeSign extends AbstractProvider
      *
      * Eg. https://oauth.service.com/authorize
      *
+     * @see https://secure.na1.adobesign.com/public/static/oauthDoc.jsp#authorizationRequest
      * @return string
      */
     public function getBaseAuthorizationUrl()
@@ -61,6 +64,7 @@ class AdobeSign extends AbstractProvider
      *
      * Eg. https://oauth.service.com/token
      *
+     * @see https://secure.na1.adobesign.com/public/static/oauthDoc.jsp#accessTokenRequest
      * @param array $params
      * @return string
      */
@@ -74,6 +78,7 @@ class AdobeSign extends AbstractProvider
      *
      * Eg. https://oauth.service.com/token
      *
+     * @see https://secure.na1.adobesign.com/public/static/oauthDoc.jsp#refreshRequest
      * @return string
      */
     public function getBaseRefreshTokenUrl()
@@ -86,6 +91,7 @@ class AdobeSign extends AbstractProvider
      *
      * Eg. https://oauth.service.com/token
      *
+     * @see https://secure.na1.adobesign.com/public/static/oauthDoc.jsp#revokingtokens
      * @return string
      */
     public function getBaseRevokeTokenUrl()
@@ -110,11 +116,12 @@ class AdobeSign extends AbstractProvider
      * This should only be the scopes that are required to request the details
      * of the resource owner, rather than all the available scopes.
      *
+     * @see https://secure.na1.adobesign.com/public/static/oauthDoc.jsp#scopes
      * @return array
      */
     protected function getDefaultScopes()
     {
-        return isset($this->scope) ? $this->scope : [];
+        return $this->scope ?? [];
     }
 
     /**
@@ -148,7 +155,6 @@ class AdobeSign extends AbstractProvider
     /**
      * Checks a provider response for errors.
      *
-     * @throws IdentityProviderException
      * @param  ResponseInterface $response
      * @param  array|string $data Parsed response data
      * @return void
@@ -172,25 +178,6 @@ class AdobeSign extends AbstractProvider
     }
 
     /**
-     * Returns the authorization headers used by this provider.
-     *
-     * Typically this is "Bearer" or "MAC". For more information see:
-     * http://tools.ietf.org/html/rfc6749#section-7.1
-     *
-     * No default is provided, providers must overload this method to activate
-     * authorization headers.
-     *
-     * @param  mixed|null $token Either a string or an access token instance
-     * @return array
-     */
-    protected function getAuthorizationHeaders($token = null)
-    {
-        return [
-            'Access-Token' => $token
-        ];
-    }
-
-    /**
      * Returns the full URL to use when requesting an access token.
      *
      * @param array $params Query parameters
@@ -200,8 +187,8 @@ class AdobeSign extends AbstractProvider
     {
         if (isset($params['refresh_token'])) {
             return $this->getBaseRefreshTokenUrl();
-        } else {
-            return $this->getBaseAccessTokenUrl($params);
         }
+
+        return $this->getBaseAccessTokenUrl($params);
     }
 }
