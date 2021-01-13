@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
 
-namespace KevinEm\OAuth2\Client\Tests;
+namespace Mettle\OAuth2\Client\Tests;
 
-use KevinEm\OAuth2\Client\AdobeSign;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use Mettle\OAuth2\Client\AdobeSign;
 use Mockery as m;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class AdobeSignTest
- * @package KevinEm\OAuth2\Client\Tests
+ * @package Mettle\OAuth2\Client\Tests
  */
-class AdobeSignTest extends \PHPUnit_Framework_TestCase
+class AdobeSignTest extends TestCase
 {
     /**
      * @var AdobeSign
      */
     protected $provider;
 
-    /**
-     * Sets up the fixture, for example, open a network connection.
-     * This method is called before a test is executed.
-     */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->provider = new AdobeSign([
             'clientId' => 'mock_client_id',
@@ -37,7 +39,7 @@ class AdobeSignTest extends \PHPUnit_Framework_TestCase
      * Tears down the fixture, for example, close a network connection.
      * This method is called after a test is executed.
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         m::close();
         parent::tearDown();
@@ -53,16 +55,17 @@ class AdobeSignTest extends \PHPUnit_Framework_TestCase
         ];
 
         $url = $this->provider->getAuthorizationUrl($options);
-        $this->assertContains(implode('+', $options['scope']), $url);
+
+        $this->assertStringContainsString(implode('+', $options['scope']), $url);
     }
 
     public function testGetAuthorizationUrl()
     {
         $url = $this->provider->getAuthorizationUrl();
-        $uri = parse_url($url);
+        ['host' => $host, 'path' => $path] = parse_url($url);
 
-        $this->assertEquals('secure.na1.echosign.com', $uri['host']);
-        $this->assertEquals('/public/oauth', $uri['path']);
+        $this->assertEquals('secure.na1.echosign.com', $host);
+        $this->assertEquals('/public/oauth', $path);
     }
 
     public function testGetAccessTokenUrl()
@@ -71,17 +74,19 @@ class AdobeSignTest extends \PHPUnit_Framework_TestCase
             'access_token' => 'mock_access_token'
         ];
 
-        $response = m::mock('Psr\Http\Message\ResponseInterface');
-        $response->shouldReceive('getBody')->andReturn(json_encode($accessToken));
-        $response->shouldReceive('getHeader')->andReturn(['content-type' => 'json']);
+        $mock = new MockHandler([
+            new Response(200, ['content-type' => 'json'], json_encode($accessToken))
+        ]);
 
-        $client = m::mock('GuzzleHttp\ClientInterface');
-        $client->shouldReceive('send')->times(1)->andReturn($response);
-        $this->provider->setHttpClient($client);
+        $handlerStack = HandlerStack::create($mock);
+
+        $this->provider->setHttpClient(
+            new Client(['handler' => $handlerStack])
+        );
 
         $token = $this->provider->getAccessToken('authorization_code', ['code' => 'mock_authorization_code']);
 
-        $this->assertEquals($token->getToken(), 'mock_access_token');
+        $this->assertEquals('mock_access_token', $token->getToken());
     }
 
     public function testGetAccessTokenUrlForRefreshToken()
@@ -90,17 +95,19 @@ class AdobeSignTest extends \PHPUnit_Framework_TestCase
             'access_token' => 'mock_access_token'
         ];
 
-        $response = m::mock('Psr\Http\Message\ResponseInterface');
-        $response->shouldReceive('getBody')->andReturn(json_encode($accessToken));
-        $response->shouldReceive('getHeader')->andReturn(['content-type' => 'json']);
+        $mock = new MockHandler([
+            new Response(200, ['content-type' => 'json'], json_encode($accessToken))
+        ]);
 
-        $client = m::mock('GuzzleHttp\ClientInterface');
-        $client->shouldReceive('send')->times(1)->andReturn($response);
-        $this->provider->setHttpClient($client);
+        $handlerStack = HandlerStack::create($mock);
+
+        $this->provider->setHttpClient(
+            new Client(['handler' => $handlerStack])
+        );
 
         $token = $this->provider->getAccessToken('refresh_token', ['refresh_token' => 'mock_refresh_token']);
 
-        $this->assertEquals($token->getToken(), 'mock_access_token');
+        $this->assertEquals('mock_access_token', $token->getToken());
     }
 
     public function testGetBaseRefreshTokenUrl()
@@ -119,14 +126,15 @@ class AdobeSignTest extends \PHPUnit_Framework_TestCase
     {
         $resourceOwner = [];
 
-        $response = m::mock('Psr\Http\Message\ResponseInterface');
-        $response->shouldReceive('getBody')->andReturn(json_encode($resourceOwner));
-        $response->shouldReceive('getHeader')->andReturn(['content-type' => 'json']);
+        $mock = new MockHandler([
+            new Response(200, ['content-type' => 'json'], json_encode($resourceOwner))
+        ]);
 
-        $client = m::mock('GuzzleHttp\ClientInterface');
-        $client->shouldReceive('send')->times(1)->andReturn($response);
+        $handlerStack = HandlerStack::create($mock);
 
-        $this->provider->setHttpClient($client);
+        $this->provider->setHttpClient(
+            new Client(['handler' => $handlerStack])
+        );
 
         $accessToken = m::mock('League\OAuth2\Client\Token\AccessToken');
 
