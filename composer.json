@@ -2,8 +2,8 @@
   "name": "mettle/oauth2-adobe-sign",
   "description": "Adobe Sign OAuth 2.0 Client Provider for The PHP League OAuth2-Client",
   "require": {
-    "php": "^7.3 || ^8.0",
-    "league/oauth2-client": "^2.5"
+    "php": "^7.3 || ^8.0 || ^8.1",
+    "league/oauth2-client": "^2.5",
   },
   "require-dev": {
     "phpunit/phpunit": "^9.0",

@@ -119,7 +119,7 @@ class AdobeSignTest extends TestCase
     {
         $accessToken = m::mock('League\OAuth2\Client\Token\AccessToken');
         $res = $this->provider->getResourceOwnerDetailsUrl($accessToken);
-        $this->assertNull($res);
+        $this->assertEmpty($res);
     }
 
     public function testCreateResourceOwner()
