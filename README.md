@@ -13,6 +13,7 @@ This package provides Adobe Sign OAuth 2.0 support for The PHP League's [OAuth 2
 
 The following versions of PHP are supported:
 
+* PHP 8.1
 * PHP 8.0
 * PHP 7.4
 * PHP 7.3
