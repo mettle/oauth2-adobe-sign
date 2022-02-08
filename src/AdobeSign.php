@@ -108,6 +108,8 @@ class AdobeSign extends AbstractProvider
     public function getResourceOwnerDetailsUrl(AccessToken $token)
     {
         // TODO: Implement getResourceOwnerDetailsUrl() method.
+        // PHP8.1 complains about null being passed into the stack.
+        return '';
     }
 
     /**
